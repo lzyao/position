@@ -17,7 +17,7 @@ const logs = require('./common/logs');
 const mongo = require('./common/mongo');
 const app = new Koa();
 
-const publicRouter = new Router({prefix: '/api'});
+const publicRouter = new Router({prefix: '/qs'});
 
 app.use(responseTime()); // 放在最前面
 
