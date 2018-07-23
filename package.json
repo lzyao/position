@@ -2,7 +2,7 @@
   "name": "qsposition",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "app.js",
   "author": "",
   "license": "ISC",
   "scripts": {
@@ -13,6 +13,7 @@
   },
   "repository": {},
   "devDependencies": {
+    "babel-cli": "^6.26.0",
     "babel-eslint": "^8.2.5",
     "eslint": "^3.16.1",
     "eslint-config-standard": "^6.2.1",
