@@ -1,0 +1,38 @@
+{
+  "name": "qsposition",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "author": "",
+  "license": "ISC",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "compile": "babel src/ --out-dir build/ --retain-lines --source-maps",
+    "start": "rm -rf build/** && npm run compile && node build/app.js",
+    "dev": "nodemon src/app.js"
+  },
+  "repository": {},
+  "devDependencies": {
+    "babel-eslint": "^8.2.5",
+    "eslint": "^3.16.1",
+    "eslint-config-standard": "^6.2.1",
+    "eslint-plugin-promise": "^3.5.0",
+    "eslint-plugin-standard": "^2.0.1",
+    "nodemon": "^1.11.0"
+  },
+  "dependencies": {
+    "axios": "^0.18.0",
+    "config": "^1.30.0",
+    "dotenv": "^6.0.0",
+    "koa": "^2.5.1",
+    "koa-bodyparser": "^4.2.1",
+    "koa-bunyan-logger": "^2.0.0",
+    "koa-cors": "^0.0.16",
+    "koa-response-time": "^2.0.0",
+    "koa-router": "^7.4.0",
+    "moment": "^2.22.2",
+    "mongoose": "^5.1.6",
+    "mongoose-paginate": "^5.0.3",
+    "mongoose-timestamp": "^0.6.0"
+  }
+}
