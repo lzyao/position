@@ -258,7 +258,7 @@ const findOneTooxBox = async (ctx) => {
     let result = {};
     // 查询任务
     let task = await Task.findOne({RFID, status: 'start'}).select(['endAddress', 'endPosition', 'remark', 'transflow']);
-    if (!task.transflow.length) {
+    if (!task || !task.transflow.length) {
     // 如果有任务存在，则查询该任务的位置变化
     // toolBoxLog = await ToolBoxLog.find({RFID, task: mongoose.Types.ObjectId(task._id)}).select(['position', 'address', 'date']);
       task.transflow = await ToolBoxLog.findOne({RFID}).sort({createdAt: -1}).select(['position', 'address', 'date']);
