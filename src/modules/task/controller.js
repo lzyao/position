@@ -6,6 +6,7 @@
 const mongoose = require('mongoose');
 // 引入其他方法
 const baidu = require('./../baidu/controller');
+const util = require('./../util/service');
 
 // 操作接口
 
@@ -24,15 +25,20 @@ const findTaskOne = async (ctx) => {
 // 创建任务
 const createTask = async (ctx) => {
   try {
-    const {RFID, user, startAddress, endAddress} = ctx.request.query;
+    const {RFID, startAddress, endAddress} = ctx.request.body;
+    const {user} = ctx.req;
     const Task = mongoose.model('Task');
     const ToolBox = mongoose.model('ToolBox');
+    const task = await Task.findOne({RFID, status: 'start'});
+    if (task) {
+      ctx.body = util.returnBody('err', '存在未完成任务'); return;
+    };
     const startPositition = await baidu.handleAddress(startAddress);
     const endPosition = await baidu.handleAddress(endAddress);
     if (startPositition.status === 0 && endPosition.status === 0) {
       const task = await Task.create({
         RFID: RFID,
-        user: user,
+        user: user._id,
         startPosition: {
           longitude: startPositition.result.location.lng,
           latitude: startPositition.result.location.lat
@@ -50,10 +56,23 @@ const createTask = async (ctx) => {
           remark: ''
         }
       });
-      ctx.body = {success: 1, data: task, message: '任务创建成功'};
+      ctx.body = util.returnBody('ok', '任务创建成功', task);
     } else {
-      ctx.body = {success: 0, data: {}, message: '地址异常'};
+      ctx.body = util.returnBody('err', '地址异常');
     }
+  } catch (err) {
+    console.log(err);
+    ctx.body = util.returnBody('err', '服务器异常');
+  }
+};
+
+// 查询某用户下创建的所有任务
+const findTaskList = async (ctx) => {
+  try {
+    const {user} = ctx.req;
+    const Task = mongoose.model('Task');
+    const task = await Task.find({user: user._id});
+    ctx.body = util.returnBody('ok', '查询成功', task);
   } catch (err) {
     console.log(err);
   }
@@ -61,7 +80,8 @@ const createTask = async (ctx) => {
 
 // 通用辅助方法
 
-module.exports.register = ({router}) => {
-  router.get('/create/task', createTask);
+module.exports.register = ({router, authRouter}) => {
+  authRouter.post('/create/task', createTask);
   router.get('/find/task/one', findTaskOne);
+  authRouter.get('/find/task/list', findTaskList);
 };

@@ -105,18 +105,18 @@ const recordToolBoxLog = async (ctx) => {
         if (task.remark === '起始') {
           // 判断当前位置于起点位置距离
           const distance = parseFloat(util.getFlatternDistance({latitude: latitude, longitude: longitude}, task.startPosition));
-          // 大于500米
-          if (distance > 500) {
+          // 大于1000米
+          if (distance > 1000) {
              // 修改 【任务备注】 为 在途
             await Task.update({_id: mongoose.Types.ObjectId(task._id)}, {remark: '在途'});
           }
         } else {
-          // 当【任务备注】为在途 小于500米,并更新任务结束 及结束时间， 更新工具预定位置
+          // 当【任务备注】为在途 小于1000米,并更新任务结束 及结束时间， 更新工具预定位置
           if (task.remark === '在途') {
             // 判断当前位置距离目的地距离
             const distance = parseFloat(util.getFlatternDistance({latitude: latitude, longitude: longitude}, task.endPosition));
-            // 小于500米
-            if (distance < 500) {
+            // 小于1000米
+            if (distance < 1000) {
               // 修改 【任务状态】 为 到达
               await Task.update({_id: mongoose.Types.ObjectId(task._id)}, {status: 'end', remark: '到达'});
               // 修改最后toolBoxPosition 预定位置
@@ -134,10 +134,10 @@ const recordToolBoxLog = async (ctx) => {
       } else {
         // 无任务
         const toolBox = await ToolBox.findOne({RFID: RFID});
-        // 判断当前位与预定位置 大于500米 修改 【工具状态】 为异常   --- 三天内离开医院后在回来也会是异常状态
+        // 判断当前位与预定位置 大于1000米 修改 【工具状态】 为异常   --- 三天内离开医院后在回来也会是异常状态
         const distance = parseFloat(util.getFlatternDistance({latitude: latitude, longitude: longitude}, toolBoxPosition.reservePosition));
-        if (distance > 500) {
-          await ToolBox.update({_id: mongoose.Types.ObjectId(toolBox._id)}, {$set: {status: '异常', remark: '离预定位置距离大于500米'}});
+        if (distance > 1000) {
+          await ToolBox.update({_id: mongoose.Types.ObjectId(toolBox._id)}, {$set: {status: '异常', remark: '离预定位置距离大于1000米'}});
         }
         // 判断工具状态
         if (toolBox.statsu === '占用') {
@@ -248,7 +248,7 @@ const findToolBoxList = async (ctx) => {
 };
 
 // 5、查询单个工具箱状态和位置
-const findOneTooxBox = async (ctx) => {
+const findOneToolBox = async (ctx) => {
   try {
     const {RFID} = ctx.request.query;
     const ToolBox = mongoose.model('ToolBox');
@@ -295,5 +295,5 @@ module.exports.register = ({router}) => {
   // 4、查询设备列表
   router.get('/find/toolBox/list', findToolBoxList);
   // 5、查询单个设备的信息
-  router.get('/find/toolBox/one', findOneTooxBox);
+  router.get('/find/toolBox/one', findOneToolBox);
 };

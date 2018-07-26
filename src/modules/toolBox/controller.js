@@ -6,11 +6,12 @@
 const mongoose = require('mongoose');
 
 // 引入其他方法
+const util = require('./../util/service');
 
 // 操作接口
 
 // 添加工具箱信息
-const createTooxBox = async (ctx) => {
+const createToolBox = async (ctx) => {
   try {
     const {RFID, tool} = ctx.request.body;
     const ToolBox = mongoose.model('ToolBox');
@@ -31,9 +32,20 @@ const createTooxBox = async (ctx) => {
 };
 
 // 更新工具状态，标记损坏
-const updateTooxBox = async (ctx) => {
+const updateToolBox = async (ctx) => {
   try {
 
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+// 查询所有可以调用的工具箱集合
+const findToolBox = async (ctx) => {
+  try {
+    const ToolBox = mongoose.model('ToolBox');
+    const toolbox = await ToolBox.find({status: '正常'});
+    ctx.body = util.returnBody('ok', '查询成功', toolbox);
   } catch (err) {
     console.log(err);
   }
@@ -42,6 +54,7 @@ const updateTooxBox = async (ctx) => {
 // 通用辅助方法
 
 module.exports.register = ({router}) => {
-  router.post('/create/toolbox', createTooxBox);
-  router.get('/update/toolbox', updateTooxBox);
+  router.post('/create/toolbox', createToolBox);
+  router.get('/update/toolbox', updateToolBox);
+  router.get('/find/toolbox', findToolBox);
 };

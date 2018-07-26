@@ -15,9 +15,11 @@ const config = require('./common/config');
 const controllers = require('./common/controllers');
 const logs = require('./common/logs');
 const mongo = require('./common/mongo');
+const jwt = require('./modules/util/jwt');
 const app = new Koa();
 
 const publicRouter = new Router({prefix: '/qs'});
+const authRouter = new Router({prefix: '/qs'});
 
 app.use(responseTime()); // 放在最前面
 
@@ -68,10 +70,13 @@ app.use(bodyParser({
 
 // 注册所有路由
 controllers({
-  router: publicRouter
+  router: publicRouter,
+  authRouter: authRouter
 });
 
 app.use(publicRouter.routes());
+app.use(jwt.decryToken);
+app.use(authRouter.routes());
 
 // catch all exceptions  捕获所有异常
 app.use(async (ctx, next) => {
