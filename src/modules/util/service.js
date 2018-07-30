@@ -19,9 +19,9 @@ const util = {
    * 得到两个经纬度之前的距离
    */
   getFlatternDistance: (startPosition, endPosition) => {
-    var f = getRad((startPosition.latitude + endPosition.latitude) / 2);
-    var g = getRad((startPosition.latitude - endPosition.latitude) / 2);
-    var l = getRad((startPosition.longitude - endPosition.longitude) / 2);
+    var f = getRad((startPosition.lat + endPosition.lat) / 2);
+    var g = getRad((startPosition.lat - endPosition.lat) / 2);
+    var l = getRad((startPosition.lng - endPosition.lng) / 2);
     var sg = Math.sin(g);
     var sl = Math.sin(l);
     var sf = Math.sin(f);

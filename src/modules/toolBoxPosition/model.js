@@ -5,8 +5,8 @@ module.exports.mongo = (Schema) => {
   const toolBoxPositionSchema = new Schema({
     RFID: String, // 工具箱唯一ID
     position: {
-      longitude: Number,
-      latitude: Number
+      lng: Number,
+      lat: Number
     }, // 定位经纬度
     date: Date, // 定位时间
     address: String, // 定位具体地址
@@ -14,8 +14,8 @@ module.exports.mongo = (Schema) => {
     city: String, // 对应城市
     district: String, // 对应区
     reservePosition: { // 预定位置经纬度
-      longitude: Number,
-      latitude: Number
+      lng: Number,
+      lat: Number
     },
     reserveAddress: String, // 预定位置
     reserveDate: Date // 更新预定位置时间

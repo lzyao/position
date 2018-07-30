@@ -18,7 +18,7 @@ const testCountPosition = async (ctx) => {
   // 116.321481,39.97711
   // 116.401394,39.919583
   // 116.236393,39.965166
-  const distance = util.getFlatternDistance({latitude: 39.97711, longitude: 116.321481}, {latitude: 39.965166, longitude: 116.236393});
+  const distance = util.getFlatternDistance({lat: 39.97711, lng: 116.321481}, {lat: 39.965166, lng: 116.236393});
   console.log(distance);
 };
 const testMoment = async (ctx) => {
@@ -37,19 +37,19 @@ const testToolBoxLog = async () => {
   // 121.486953,31.24291
   // 测试位置信息
   let positions = [
-    {device: 'A0001', RFID: 'B0001', latitude: 31.298899, longitude: 121.322959},
-    {device: 'A0001', RFID: 'B0001', latitude: 31.252727, longitude: 121.39511},
-    {device: 'A0001', RFID: 'B0001', latitude: 31.261926, longitude: 121.451596},
-    {device: 'A0001', RFID: 'B0001', latitude: 31.24291, longitude: 121.486953},
-    {device: 'A0001', RFID: 'B0001', latitude: 31.24291, longitude: 121.486953}
+    {device: 'A0001', RFID: 'B0001', lat: 31.298899, lng: 121.322959},
+    {device: 'A0001', RFID: 'B0001', lat: 31.252727, lng: 121.39511},
+    {device: 'A0001', RFID: 'B0001', lat: 31.261926, lng: 121.451596},
+    {device: 'A0001', RFID: 'B0001', lat: 31.24291, lng: 121.486953},
+    {device: 'A0001', RFID: 'B0001', lat: 31.24291, lng: 121.486953}
   ];
   for (let position in positions) {
     await axios.get('192.168.1.207:8080/api/record/toolbox', {
       params: {
         device: position.device,
         RFID: position.RFID,
-        latitude: position.latitude,
-        longitude: position.longitude
+        lat: position.lat,
+        lng: position.lng
       }
     }).then((res) => {
       console.log(res.data);

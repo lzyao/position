@@ -43,8 +43,6 @@ const decryToken = async (ctx, next) => {
      *    ...in that order.
      */
     var token = (body && body.token) || query.token || headers['access-token'] || headers['token'];
-    let {latitude, longitude, accuracy, uuid} = headers;
-    let position = {latitude: latitude, longitude: longitude, accuracy: accuracy, uuid: uuid};
     // if (!query.version || query.version !== 'v1') {
     //   ctx.body = util.returnBody('err', '版本信息错误');
     //   return;
@@ -65,7 +63,6 @@ const decryToken = async (ctx, next) => {
               user.phone = undefined;
               user.password = undefined;
               ctx.req.user = user;  // 如果数据库存在，将查询到用户信息附加到请求上
-              ctx.req.position = position;
               await next();
             } else {
               ctx.body = util.returnBody('invalid', 'token解析失败');

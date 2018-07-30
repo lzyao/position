@@ -7,8 +7,8 @@ module.exports.mongo = (Schema) => {
     remark: String, // 当前定位备注
     task: Schema.Types.ObjectId, // 任务ID
     position: {
-      longitude: Number,
-      latitude: Number
+      lng: Number,
+      lat: Number
     }, // 定位经纬度
     date: Date, // 定位时间
     address: String, // 定位具体地址

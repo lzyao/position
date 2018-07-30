@@ -22,9 +22,9 @@ const util = require('./../util/service');
 const recordToolBoxLog = async (ctx) => {
   try {
     const {RFID, device} = ctx.request.query;
-    let {longitude, latitude} = ctx.request.query;
-    longitude = parseFloat(longitude);
-    latitude = parseFloat(latitude);
+    let {lng, lat} = ctx.request.query;
+    lng = parseFloat(lng);
+    lat = parseFloat(lat);
     const Device = mongoose.model('Device');
     const Task = mongoose.model('Task');
     const ToolBox = mongoose.model('ToolBox');
@@ -33,7 +33,7 @@ const recordToolBoxLog = async (ctx) => {
     let toolBoxPosition;
     let taskId;
     // 获取经纬度对应的具体位置信息
-    const address = await baidu.handlePosition(latitude, longitude);
+    const address = await baidu.handlePosition(lat, lng);
     if (!RFID) {
       // RFID未回传， 修改 【设备状态】 为设备分离 记录日志，标记日志remark 设备分离
       await Device.update({device: device}, {
@@ -46,8 +46,8 @@ const recordToolBoxLog = async (ctx) => {
         device: device,
         RFID: RFID,
         position: {
-          longitude: longitude,
-          latitude: latitude
+          lng: lng,
+          lat: lat
         },
         address: address.result.formatted_address,
         remark: '设备分离',
@@ -64,8 +64,8 @@ const recordToolBoxLog = async (ctx) => {
         toolBoxPosition = await ToolBoxPosition.create({
           RFID: RFID,
           position: {
-            longitude: longitude,
-            latitude: latitude
+            lng: lng,
+            lat: lat
           },
           address: address.result.formatted_address,
           date: new Date(),
@@ -73,8 +73,8 @@ const recordToolBoxLog = async (ctx) => {
           city: address.result.addressComponent.city,
           district: address.result.addressComponent.district,
           reservePosition: {
-            longitude: '39.97711',
-            latitude: '116.321481'
+            lng: lng,
+            lat: lat
           },
           reserveAddress: address.result.formatted_address,
           reserveDate: new Date()
@@ -89,11 +89,11 @@ const recordToolBoxLog = async (ctx) => {
         // 记录任务的位置变动流程
         let transflow = task.transflow || [];
         // 日志去重后展示-防止设备在一个位置停留时间过长导致任务流程大量重复
-        // position = handleToolBoxLog(transflow, {longitude: longitude, latitude: latitude});
+        // position = handleToolBoxLog(transflow, {lng: lng, lat: lat});
         transflow.push({
           position: {
-            longitude: longitude,
-            latitude: latitude
+            lng: lng,
+            lat: lat
           },
           addrees: address.result.formatted_address,
           date: moment(new Date()).format('YYYY-MM-DD HH:MM:SS')
@@ -104,7 +104,7 @@ const recordToolBoxLog = async (ctx) => {
         // 当【任务备注】为起始
         if (task.remark === '起始') {
           // 判断当前位置于起点位置距离
-          const distance = parseFloat(util.getFlatternDistance({latitude: latitude, longitude: longitude}, task.startPosition));
+          const distance = parseFloat(util.getFlatternDistance({lat: lat, lng: lng}, task.startPosition));
           // 大于1000米
           if (distance > 1000) {
              // 修改 【任务备注】 为 在途
@@ -114,7 +114,7 @@ const recordToolBoxLog = async (ctx) => {
           // 当【任务备注】为在途 小于1000米,并更新任务结束 及结束时间， 更新工具预定位置
           if (task.remark === '在途') {
             // 判断当前位置距离目的地距离
-            const distance = parseFloat(util.getFlatternDistance({latitude: latitude, longitude: longitude}, task.endPosition));
+            const distance = parseFloat(util.getFlatternDistance({lat: lat, lng: lng}, task.endPosition));
             // 小于1000米
             if (distance < 1000) {
               // 修改 【任务状态】 为 到达
@@ -122,8 +122,8 @@ const recordToolBoxLog = async (ctx) => {
               // 修改最后toolBoxPosition 预定位置
               await ToolBoxPosition.update({
                 reservePosition: {
-                  longitude: longitude,
-                  latitude: latitude
+                  lng: lng,
+                  lat: lat
                 },
                 reserveAddress: address.result.formatted_address,
                 reserveDate: new Date()
@@ -135,7 +135,7 @@ const recordToolBoxLog = async (ctx) => {
         // 无任务
         const toolBox = await ToolBox.findOne({RFID: RFID});
         // 判断当前位与预定位置 大于1000米 修改 【工具状态】 为异常   --- 三天内离开医院后在回来也会是异常状态
-        const distance = parseFloat(util.getFlatternDistance({latitude: latitude, longitude: longitude}, toolBoxPosition.reservePosition));
+        const distance = parseFloat(util.getFlatternDistance({lat: lat, lng: lng}, toolBoxPosition.reservePosition));
         if (distance > 1000) {
           await ToolBox.update({_id: mongoose.Types.ObjectId(toolBox._id)}, {$set: {status: '异常', remark: '离预定位置距离大于1000米'}});
         }
@@ -160,8 +160,8 @@ const recordToolBoxLog = async (ctx) => {
       RFID: RFID,
       task: taskId,
       position: {
-        longitude: longitude,
-        latitude: latitude
+        lng: lng,
+        lat: lat
       },
       address: address.result.formatted_address,
       remark: '正常',
@@ -174,8 +174,8 @@ const recordToolBoxLog = async (ctx) => {
     await ToolBoxPosition.update({_id: mongoose.Types.ObjectId(toolBoxPosition._id)}, {
       $set: {
         position: {
-          longitude: longitude,
-          latitude: latitude
+          lng: lng,
+          lat: lat
         },
         date: new Date(),
         address: address.result.formatted_address,
@@ -261,7 +261,8 @@ const findOneToolBox = async (ctx) => {
     if (!task.transflow || !task.transflow.length) {
     // 如果有任务存在，则查询该任务的位置变化
     // toolBoxLog = await ToolBoxLog.find({RFID, task: mongoose.Types.ObjectId(task._id)}).select(['position', 'address', 'date']);
-      task.transflow = await ToolBoxLog.findOne({RFID}).sort({createdAt: -1}).select(['position', 'address', 'date']);
+      task.transflow = [];
+      task.transflow.push(await ToolBoxLog.findOne({RFID}).sort({createdAt: -1}).select(['position', 'address', 'date']));
     }
     // 查询工具箱信息
     const toolBox = await ToolBox.findOne({RFID});

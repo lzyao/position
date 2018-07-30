@@ -6,13 +6,13 @@ module.exports.mongo = (Schema) => {
     RFID: String, // 工具箱ID
     user: Schema.Types.ObjectId,
     startPosition: {
-      longitude: Number,
-      latitude: Number
+      lng: Number,
+      lat: Number
     }, // 起始地经纬度
     startAddress: String, // 起始地址
     endPosition: {
-      longitude: Number,
-      latitude: Number
+      lng: Number,
+      lat: Number
     }, // 目的地经纬度
     transflow: Array, // 任务流程
     endAddress: String, // 目的地地址

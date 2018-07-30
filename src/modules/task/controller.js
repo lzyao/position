@@ -40,12 +40,12 @@ const createTask = async (ctx) => {
         RFID: RFID,
         user: user._id,
         startPosition: {
-          longitude: startPositition.result.location.lng,
-          latitude: startPositition.result.location.lat
+          lng: startPositition.result.location.lng,
+          lat: startPositition.result.location.lat
         },
         endPosition: {
-          longitude: endPosition.result.location.lng,
-          latitude: endPosition.result.location.lat
+          lng: endPosition.result.location.lng,
+          lat: endPosition.result.location.lat
         },
         startAddress: startAddress,
         endAddress: endAddress
