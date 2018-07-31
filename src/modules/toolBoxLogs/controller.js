@@ -34,7 +34,6 @@ const recordToolBoxLog = async (ctx) => {
     let taskId;
     // 获取经纬度对应的具体位置信息
     const address = await baidu.handlePosition(lat, lng);
-    console.log(address);
     const toolBox = await ToolBox.findOne({RFID: RFID});
     if (!RFID) {
       // RFID未回传， 修改 【设备状态】 为设备分离 记录日志，标记日志remark 设备分离

@@ -54,7 +54,7 @@ const createTask = async (ctx) => {
       });
       await ToolBox.update({RFID}, {
         $set: {
-          status: '可调配',
+          status: '占用',
           remark: ''
         }
       });
