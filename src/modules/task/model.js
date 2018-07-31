@@ -3,6 +3,10 @@
  */
 module.exports.mongo = (Schema) => {
   const TaskSchema = new Schema({
+    toolBox: {
+      type: Schema.Types.ObjectId,
+      ref: 'ToolBox'
+    },
     RFID: String, // 工具箱ID
     user: Schema.Types.ObjectId,
     startPosition: {

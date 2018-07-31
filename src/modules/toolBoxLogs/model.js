@@ -3,6 +3,10 @@
  */
 module.exports.mongo = (Schema) => {
   const ToolBoxLogsSchema = new Schema({
+    toolBox: {
+      type: Schema.Types.ObjectId,
+      ref: 'ToolBox'
+    },
     RFID: String, // RFID 工具箱唯一标识
     remark: String, // 当前定位备注
     task: Schema.Types.ObjectId, // 任务ID

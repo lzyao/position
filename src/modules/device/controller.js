@@ -58,13 +58,20 @@ const updateDeviceToolBox = async (ctx) => {
 const updateDevice = async (device, RFID) => {
   try {
     const Device = mongoose.model('Device');
-    // 更新硬件设备对应的工具箱
-    await Device.update({device: device}, {
-      $set: {
-        RFID: RFID
-      }
-    });
-    return true;
+    const ToolBox = mongoose.model('ToolBox');
+    const toolBox = await ToolBox.findOne({RFID});
+    if (toolBox) {
+      // 更新硬件设备对应的工具箱
+      await Device.update({device: device}, {
+        $set: {
+          RFID: RFID,
+          toolBox: toolBox._id
+        }
+      });
+      return true;
+    } else {
+      return false;
+    }
   } catch (err) {
     console.log(err);
   };

@@ -33,10 +33,12 @@ const createTask = async (ctx) => {
     if (task) {
       ctx.body = util.returnBody('err', '存在未完成任务'); return;
     };
+    const toolBox = ToolBox.findOne({RFID});
     const startPositition = await baidu.handleAddress(startAddress);
     const endPosition = await baidu.handleAddress(endAddress);
     if (startPositition.status === 0 && endPosition.status === 0) {
       const task = await Task.create({
+        toolBox: toolBox._id,
         RFID: RFID,
         user: user._id,
         startPosition: {
@@ -52,7 +54,7 @@ const createTask = async (ctx) => {
       });
       await ToolBox.update({RFID}, {
         $set: {
-          status: '正常',
+          status: '可调配',
           remark: ''
         }
       });

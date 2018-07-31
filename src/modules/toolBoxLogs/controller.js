@@ -34,6 +34,8 @@ const recordToolBoxLog = async (ctx) => {
     let taskId;
     // 获取经纬度对应的具体位置信息
     const address = await baidu.handlePosition(lat, lng);
+    console.log(address);
+    const toolBox = await ToolBox.findOne({RFID: RFID});
     if (!RFID) {
       // RFID未回传， 修改 【设备状态】 为设备分离 记录日志，标记日志remark 设备分离
       await Device.update({device: device}, {
@@ -43,6 +45,7 @@ const recordToolBoxLog = async (ctx) => {
       });
       // 记录对应日志
       await ToolBoxLogs.create({
+        toolBox: toolBox._id,
         device: device,
         RFID: RFID,
         position: {
@@ -62,6 +65,7 @@ const recordToolBoxLog = async (ctx) => {
       if (!toolBoxPosition) {
         // 如果第一次回传位置信息
         toolBoxPosition = await ToolBoxPosition.create({
+          toolBox: toolBox._id,
           RFID: RFID,
           position: {
             lng: lng,
@@ -95,7 +99,7 @@ const recordToolBoxLog = async (ctx) => {
             lng: lng,
             lat: lat
           },
-          addrees: address.result.formatted_address,
+          address: address.result.formatted_address,
           date: moment(new Date()).format('YYYY-MM-DD HH:MM:SS')
         });
         // 修改 任务流程
@@ -133,7 +137,6 @@ const recordToolBoxLog = async (ctx) => {
         }
       } else {
         // 无任务
-        const toolBox = await ToolBox.findOne({RFID: RFID});
         // 判断当前位与预定位置 大于1000米 修改 【工具状态】 为异常   --- 三天内离开医院后在回来也会是异常状态
         const distance = parseFloat(util.getFlatternDistance({lat: lat, lng: lng}, toolBoxPosition.reservePosition));
         if (distance > 1000) {
@@ -156,6 +159,7 @@ const recordToolBoxLog = async (ctx) => {
     // 记录当前定位信息到日志表（toolBoxLogs)
       // 记录对应日志
     await ToolBoxLogs.create({
+      toolBox: toolBox._id,
       device: device,
       RFID: RFID,
       task: taskId,
@@ -184,15 +188,15 @@ const recordToolBoxLog = async (ctx) => {
         district: address.result.addressComponent.district
       }
     });
-    ctx.body = {success: 1, status: 200, message: 'ok'};
+    ctx.body = util.returnBody('ok', '记录成功');
   } catch (err) {
     console.log(err);
-    ctx.body = {success: 0, status: 1001, message: '服务器异常'};
+    ctx.body = util.returnBody('ok', '服务器异常');
   }
 };
 
-// 2、统计各省份或者各城市/区工具箱数量
-const countToolBoxByProvince = async (ctx) => {
+// 2、查询各省份或者各城市/区工具箱数量
+const findToolBoxByProvince = async (ctx) => {
   try {
     const ToolBoxPosition = mongoose.model('ToolBoxPosition');
     const countToolBox = await ToolBoxPosition.aggregate([
@@ -209,8 +213,8 @@ const countToolBoxByProvince = async (ctx) => {
   }
 };
 
-// 3、统计各城市/区工具箱数量
-const countToolBoxByCity = async (ctx) => {
+// 3、查询各城市/区工具箱数量
+const findToolBoxByCity = async (ctx) => {
   try {
     const ToolBoxPosition = mongoose.model('ToolBoxPosition');
     const {province} = ctx.request.query;
@@ -279,6 +283,32 @@ const findOneToolBox = async (ctx) => {
   }
 };
 
+// 根据状态统计不同精确度的地图信息
+const countToolBoxByStatus = async (ctx) => {
+  try {
+    const {province, city} = ctx.request.query;
+    const ToolBoxPosition = mongoose.model('ToolBoxPosition');
+    let where = {};
+    if (province) _.merge(where, {province});
+    if (city) _.merge(where, {city});
+    // 查询当前条件下所有设备位置信息
+    let toolBox = await ToolBoxPosition
+    .find(where).populate([{
+      path: 'toolBox',
+      select: ['status']
+    }]).select(['province', 'city']);
+    // 根据设备进行分组
+    toolBox = _.groupBy(toolBox, 'toolBox.status');
+    let countToolBox = [];
+    countToolBox.push({status: '异常', count: (toolBox.异常 && toolBox.异常.length) || 0});
+    countToolBox.push({status: '占用', count: (toolBox.占用 && toolBox.占用.length) || 0});
+    countToolBox.push({status: '可调配', count: (toolBox.可调配 && toolBox.可调配.length) || 0});
+    ctx.body = util.returnBody('ok', '查询成功', countToolBox);
+  } catch (err) {
+    console.log(err);
+  }
+};
+
 // 通用辅助方法
 
 // 处理日志重复位置问题
@@ -290,11 +320,12 @@ module.exports.register = ({router}) => {
   // 1、记录设备回传日志
   router.get('/record/toolbox', recordToolBoxLog);
   // 2、统计各个省份对应的设备数量
-  router.get('/count/province', countToolBoxByProvince);
+  router.get('/count/province', findToolBoxByProvince);
   // 3、统计各个城市对应的设备数量
-  router.get('/count/city', countToolBoxByCity);
+  router.get('/count/city', findToolBoxByCity);
   // 4、查询设备列表
   router.get('/find/toolBox/list', findToolBoxList);
   // 5、查询单个设备的信息
   router.get('/find/toolBox/one', findOneToolBox);
+  router.get('/count/status', countToolBoxByStatus);
 };

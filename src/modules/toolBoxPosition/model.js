@@ -3,7 +3,11 @@
  */
 module.exports.mongo = (Schema) => {
   const toolBoxPositionSchema = new Schema({
-    RFID: String, // 工具箱唯一ID
+    toolBox: {
+      type: Schema.Types.ObjectId,
+      ref: 'ToolBox'
+    },
+    RFID: String,
     position: {
       lng: Number,
       lat: Number
