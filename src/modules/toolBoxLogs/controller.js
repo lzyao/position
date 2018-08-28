@@ -236,7 +236,6 @@ const findToolBoxByCity = async (ctx) => {
 const findToolBoxList = async (ctx) => {
   try {
     const {city, address, RFID} = ctx.request.query;
-    console.log(city);
     let where = {};
     if (city) _.merge(where, {city});
     if (address) _.merge(where, {address});
@@ -282,7 +281,7 @@ const findOneToolBox = async (ctx) => {
   }
 };
 
-// 根据状态统计不同精确度的地图信息
+// 6、根据状态统计不同精确度的地图信息
 const countToolBoxByStatus = async (ctx) => {
   try {
     const {province, city} = ctx.request.query;
@@ -305,6 +304,23 @@ const countToolBoxByStatus = async (ctx) => {
     ctx.body = util.returnBody('ok', '查询成功', countToolBox);
   } catch (err) {
     console.log(err);
+    ctx.body = util.returnBody('err', '查询失败');
+  }
+};
+
+// 7、根据状态查询对应的设备列表
+const findToolBoxByStatus = async (ctx) => {
+  try {
+    const {status} = ctx.request.query;
+    const ToolBox = mongoose.model('ToolBox');
+    const ToolBoxPosition = mongoose.model('ToolBoxPosition');
+    let toolBox = await ToolBox.find({status}).select('_id');
+    toolBox = _.map(toolBox, '_id');
+    const toolBoxPosition = await ToolBoxPosition.find({toolBox: {$in: toolBox}});
+    ctx.body = util.returnBody('ok', '查询成功', toolBoxPosition);
+  } catch (err) {
+    console.log(err);
+    ctx.body = util.returnBody('err', '查询失败');
   }
 };
 
@@ -326,5 +342,8 @@ module.exports.register = ({router}) => {
   router.get('/find/toolBox/list', findToolBoxList);
   // 5、查询单个设备的信息
   router.get('/find/toolBox/one', findOneToolBox);
+  // 6、统计各个状态对应的数量
   router.get('/count/status', countToolBoxByStatus);
+  // 7、根据状态查询硬件设备集合
+  router.get('/find/status', findToolBoxByStatus);
 };
