@@ -235,12 +235,18 @@ const findToolBoxByCity = async (ctx) => {
 // 4、查询工具箱列表
 const findToolBoxList = async (ctx) => {
   try {
-    const {city, address, RFID} = ctx.request.query;
+    const {city, address, RFID, status} = ctx.request.query;
+    const ToolBox = mongoose.model('ToolBox');
+    const ToolBoxPosition = mongoose.model('ToolBoxPosition');
     let where = {};
     if (city) _.merge(where, {city});
     if (address) _.merge(where, {address});
     if (RFID) _.merge(where, {RFID});
-    const ToolBoxPosition = mongoose.model('ToolBoxPosition');
+    if (status) {
+      let toolBox = await ToolBox.find({status}).select('_id');
+      toolBox = _.map(toolBox, '_id');
+      _.merge(where, {toolBox: {$in: toolBox}});
+    }
     const toolBoxs = await ToolBoxPosition.find(where).select(['RFID', 'position', 'date', 'address']);
     ctx.body = util.returnBody('ok', '查询成功', toolBoxs);
   } catch (err) {
@@ -308,22 +314,6 @@ const countToolBoxByStatus = async (ctx) => {
   }
 };
 
-// 7、根据状态查询对应的设备列表
-const findToolBoxByStatus = async (ctx) => {
-  try {
-    const {status} = ctx.request.query;
-    const ToolBox = mongoose.model('ToolBox');
-    const ToolBoxPosition = mongoose.model('ToolBoxPosition');
-    let toolBox = await ToolBox.find({status}).select('_id');
-    toolBox = _.map(toolBox, '_id');
-    const toolBoxPosition = await ToolBoxPosition.find({toolBox: {$in: toolBox}});
-    ctx.body = util.returnBody('ok', '查询成功', toolBoxPosition);
-  } catch (err) {
-    console.log(err);
-    ctx.body = util.returnBody('err', '查询失败');
-  }
-};
-
 // 通用辅助方法
 
 // 处理日志重复位置问题
@@ -344,6 +334,4 @@ module.exports.register = ({router}) => {
   router.get('/find/toolBox/one', findOneToolBox);
   // 6、统计各个状态对应的数量
   router.get('/count/status', countToolBoxByStatus);
-  // 7、根据状态查询硬件设备集合
-  router.get('/find/status', findToolBoxByStatus);
 };
